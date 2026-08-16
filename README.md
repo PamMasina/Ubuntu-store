@@ -1,10 +1,10 @@
 # Ubuntu Store
 
-> "I am because we are" - A trusted, community-driven campus marketplace.
+
 
 Ubuntu Store is a web-based marketplace platform built for campus communities. Students, local vendors, faculty, and nearby residents can buy, sell, and trade goods and services in a safe and verified environment.
 
-**Project Management 3 (PRM370/371/372S) - CPUT 2026**
+
 
 ---
 
@@ -121,4 +121,4 @@ Never push directly to `main`. Always create a pull request to `dev` first.
 
 ---
 
-*Ubuntu Store - Built with CPUT PRM370/371/372S 2026*
+
