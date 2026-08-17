@@ -1,90 +1,177 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../supabaseClient'
+import './Home.css'
 
-export default function Home() {
+const CATEGORIES = ['All', 'Textbooks', 'Electronics', 'Clothing', 'Services', 'Other']
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest first' },
+  { value: 'oldest', label: 'Oldest first' },
+  { value: 'price-low', label: 'Price: Low to High' },
+  { value: 'price-high', label: 'Price: High to Low' }
+]
+
+export default function Home({ session }) {
   const [listings, setListings] = useState([])
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
+  const [sort, setSort] = useState('newest')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [selected, setSelected] = useState(null)
 
-  const categories = ['All', 'Textbooks', 'Electronics', 'Clothing', 'Services', 'Other']
-
-  useEffect(() => {
-    fetchListings()
-  }, [])
-
-  const fetchListings = async () => {
+  const fetchListings = useCallback(async () => {
     setLoading(true)
+    setError('')
     const { data, error } = await supabase
       .from('listings')
       .select('*')
       .eq('status', 'active')
       .order('created_at', { ascending: false })
-    if (!error) setListings(data)
+    if (error) {
+      setError('Failed to load listings.')
+    } else {
+      setListings(data)
+    }
     setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    fetchListings()
+  }, [fetchListings])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
   }
 
-  const filtered = listings.filter(l => {
-    const matchSearch = l.title.toLowerCase().includes(search.toLowerCase())
-    const matchCategory = category === 'All' || l.category === category
-    return matchSearch && matchCategory
-  })
+  const filtered = listings
+    .filter(l => {
+      const matchSearch = l.title.toLowerCase().includes(search.toLowerCase())
+      const matchCategory = category === 'All' || l.category === category
+      return matchSearch && matchCategory
+    })
+    .sort((a, b) => {
+      switch (sort) {
+        case 'price-low': return a.price - b.price
+        case 'price-high': return b.price - a.price
+        case 'oldest': return new Date(a.created_at) - new Date(b.created_at)
+        default: return new Date(b.created_at) - new Date(a.created_at)
+      }
+    })
 
   return (
-    <div style={{ fontFamily: 'Arial', maxWidth: '900px', margin: '0 auto', padding: '1rem' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', padding: '1rem', background: '#1F4E79', borderRadius: '8px' }}>
-        <h2 style={{ color: 'white', margin: 0 }}>Ubuntu Store</h2>
-        <span style={{ color: '#D6E4F0', fontSize: '13px' }}>Campus Marketplace</span>
+    <div className="home-container">
+      <div className="home-header">
+        <h2>Ubuntu Store</h2>
+        <div className="home-header-right">
+          <span className="home-email">{session.user.email}</span>
+          <button className="home-logout" onClick={handleLogout}>Log Out</button>
+        </div>
       </div>
 
-      {/* Search */}
-      <input
-        type="text"
-        placeholder="Search listings..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '14px', marginBottom: '1rem', boxSizing: 'border-box' }}
-      />
+      <div className="home-search-row">
+        <input
+          className="home-search-input"
+          type="text"
+          placeholder="Search listings..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <select
+          className="home-sort-select"
+          value={sort}
+          onChange={e => setSort(e.target.value)}
+        >
+          {SORT_OPTIONS.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
 
-      {/* Category filters */}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        {categories.map(cat => (
+      <div className="home-categories">
+        {CATEGORIES.map(cat => (
           <button
             key={cat}
             onClick={() => setCategory(cat)}
-            style={{
-              padding: '6px 14px', borderRadius: '20px', border: '1px solid #1F4E79', cursor: 'pointer', fontSize: '13px',
-              background: category === cat ? '#1F4E79' : 'white',
-              color: category === cat ? 'white' : '#1F4E79'
-            }}>
+            className={`home-cat-btn ${category === cat ? 'active' : ''}`}
+          >
             {cat}
           </button>
         ))}
       </div>
 
-      {/* Listings grid */}
       {loading ? (
-        <p style={{ textAlign: 'center', color: '#888' }}>Loading listings...</p>
+        <p className="home-loading">Loading listings...</p>
+      ) : error ? (
+        <p className="home-error">{error}</p>
       ) : filtered.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#888' }}>No listings found.</p>
+        <div className="home-empty">
+          <div className="home-empty-icon">&#128269;</div>
+          <p>No listings found.</p>
+        </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+        <div className="home-grid">
           {filtered.map(listing => (
-            <div key={listing.id} style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer' }}>
-              <div style={{ height: '120px', background: '#D6E4F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div
+              key={listing.id}
+              className="home-card"
+              onClick={() => setSelected(listing)}
+            >
+              <div className="home-card-image">
                 {listing.image_url
-                  ? <img src={listing.image_url} alt={listing.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <span style={{ color: '#888', fontSize: '13px' }}>No image</span>
+                  ? <img src={listing.image_url} alt={listing.title} />
+                  : <span className="home-card-no-img">No image</span>
                 }
               </div>
-              <div style={{ padding: '10px' }}>
-                <p style={{ margin: '0 0 4px', fontWeight: '500', fontSize: '14px' }}>{listing.title}</p>
-                <p style={{ margin: '0 0 4px', color: '#1F4E79', fontWeight: 'bold', fontSize: '14px' }}>R{listing.price}</p>
-                <p style={{ margin: 0, color: '#888', fontSize: '12px' }}>{listing.category}</p>
+              <div className="home-card-body">
+                <p className="home-card-title">{listing.title}</p>
+                <p className="home-card-price">R{listing.price}</p>
+                <p className="home-card-category">{listing.category}</p>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {selected && (
+        <div className="detail-overlay" onClick={() => setSelected(null)}>
+          <div className="detail-modal" onClick={e => e.stopPropagation()}>
+            <div className="detail-image">
+              {selected.image_url
+                ? <img src={selected.image_url} alt={selected.title} />
+                : <span className="detail-no-img">No image available</span>
+              }
+            </div>
+            <div className="detail-body">
+              <h2 className="detail-title">{selected.title}</h2>
+              <p className="detail-price">R{selected.price}</p>
+              <p className="detail-category">{selected.category}</p>
+
+              {selected.description && (
+                <>
+                  <div className="detail-divider" />
+                  <p className="detail-description-label">Description</p>
+                  <p className="detail-description">{selected.description}</p>
+                </>
+              )}
+
+              <div className="detail-divider" />
+              <p className="detail-seller">
+                Listed by <strong>{selected.seller_id?.slice(0, 8)}...</strong>
+              </p>
+
+              <div className="detail-actions">
+                <button
+                  className="detail-contact-btn"
+                  onClick={() => window.location.href = `mailto:?subject=Ubuntu Store: ${selected.title}`}
+                >
+                  Contact Seller
+                </button>
+                <button className="detail-close-btn" onClick={() => setSelected(null)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

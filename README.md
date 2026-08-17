@@ -26,8 +26,8 @@ Ubuntu Store is a web-based marketplace platform built for campus communities. S
 |---|---|
 | Frontend | React + Vite |
 | Backend | Node.js + Express |
-| Database | Firebase Firestore |
-| Authentication | Firebase Auth |
+| Database | Supabase (PostgreSQL) |
+| Authentication | Supabase Auth |
 | Payments | PayFast Sandbox |
 | Frontend Hosting | Vercel |
 | Backend Hosting | Render |
@@ -46,9 +46,8 @@ ubuntu-store/
 │       └── assets/        # Images and static files
 ├── backend/               # Node.js + Express API
 │   ├── routes/            # API route handlers
-│   ├── controllers/       # Business logic
-│   ├── middleware/        # Auth and validation
-│   └── config/            # Firebase config
+│   ├── middleware/        # Auth middleware
+│   └── config/            # Supabase config
 ├── docs/                  # All project documentation
 └── README.md
 ```
@@ -81,7 +80,22 @@ Runs at: http://localhost:3000
 
 ### 4. Environment variables
 Create a `.env` file inside both `frontend/` and `backend/`.
-Get the Firebase config values from Pamela. Never commit `.env` files.
+**Frontend** (`frontend/.env`):
+```
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+**Backend** (`backend/.env`):
+```
+PORT=3000
+SUPABASE_URL=your-supabase-url
+SUPABASE_SERVICE_KEY=your-service-role-key
+PAYFAST_MERCHANT_ID=
+PAYFAST_MERCHANT_KEY=
+```
+
+Get the Supabase keys from Abongile. Never commit `.env` files.
 
 ---
 

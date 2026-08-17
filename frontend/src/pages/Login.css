@@ -1,0 +1,137 @@
+.login-container {
+  max-width: 400px;
+  margin: 80px auto;
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+}
+
+.login-title {
+  color: #1F4E79;
+  text-align: center;
+  margin: 0 0 4px;
+  font-size: 24px;
+}
+
+.login-subtitle {
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  margin: 0 0 2rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login-input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #1F4E79;
+}
+
+.login-input.has-error {
+  border-color: #dc3545;
+}
+
+.login-select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.login-select:focus {
+  outline: none;
+  border-color: #1F4E79;
+}
+
+.login-error {
+  color: #dc3545;
+  font-size: 13px;
+  margin: 0;
+}
+
+.login-success {
+  color: #28a745;
+  font-size: 13px;
+  margin: 0;
+}
+
+.login-btn {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-btn-primary {
+  background: #1F4E79;
+  color: white;
+}
+
+.login-btn-secondary {
+  background: white;
+  color: #1F4E79;
+  border: 1px solid #1F4E79;
+}
+
+.login-forgot {
+  text-align: right;
+}
+
+.login-forgot button {
+  background: none;
+  border: none;
+  color: #1F4E79;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.login-forgot button:hover {
+  color: #163a5c;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ccc;
+  font-size: 13px;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.login-hint {
+  font-size: 12px;
+  color: #888;
+  margin: 0;
+}
