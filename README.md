@@ -81,7 +81,7 @@ Runs at: http://localhost:3000
 
 ### 4. Environment variables
 Create a `.env` file inside both `frontend/` and `backend/`.
-Get the Firebase config values from Abongile. Never commit `.env` files.
+Get the Firebase config values from Pamela. Never commit `.env` files.
 
 ---
 
