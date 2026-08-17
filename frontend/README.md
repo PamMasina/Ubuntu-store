@@ -1,27 +1,16 @@
-# Ubuntu Store - Frontend
+# React + Vite
 
-React + Vite web application.
+This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
-## Setup
-```bash
-npm install
-npm run dev
-```
+Currently, two official plugins are available:
 
-## Pages (matching wireframes)
-- `/` - Home and browse listings
-- `/login` - Login and signup
-- `/register` - Create account
-- `/listing/:id` - Product detail
-- `/sell` - Create a listing
-- `/board` - Community bulletin board
-- `/profile` - User profile and ratings
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## Folder structure
-```
-src/
-├── components/    # Navbar, ProductCard, ListingForm, etc.
-├── pages/         # One .jsx file per screen
-├── context/       # AuthContext for login state
-└── assets/        # Logo, icons, images
-```
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the Oxlint configuration
+
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
