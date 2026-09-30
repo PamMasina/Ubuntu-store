@@ -1,16 +1,51 @@
-# React + Vite
+# Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React 19 + Vite. Talks to the API in `../backend` for all data, and uses
+Supabase directly only for authentication.
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
 
-## React Compiler
+Needs the API running on port 3000. Vite proxies `/api` there, so the browser
+never makes a cross-origin request in development.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Environment
 
-## Expanding the Oxlint configuration
+| Variable | Purpose |
+|---|---|
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Public anon key. RLS protects it |
+| `VITE_API_BASE` | Defaults to `/api` |
+| `VITE_PROXY_TARGET` | Where the dev proxy forwards. Defaults to `http://localhost:3000` |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+The service_role key must never appear in this app. All privileged writes go
+through the API.
+
+## Layout
+
+```
+api.js              typed client for every endpoint, plus ApiError
+context/
+  AuthContext.jsx   session, authoritative role, sign out
+  CartContext.jsx   cart, persisted to localStorage
+components/         Header, StatusBadge, StarRating, States
+pages/              one file per route
+index.css           design tokens and shared components
+pages.css           page-specific styles
+```
+
+## Two things worth knowing
+
+**Role is not trusted from the token.** `user_metadata.role` is writable by the
+account holder, so `AuthContext` fetches the role from `profiles` via
+`/api/auth/me` and treats that as authoritative. Vendor-only routes wait for it
+to load rather than assuming.
+
+**The API does the authorization.** This app never writes to a table directly.
+Vendor update and delete go through endpoints that scope by the verified user
+id, so one vendor cannot touch another's listings.

@@ -1,141 +1,159 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { supabase } from '../supabaseClient'
-import './Login.css'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { api } from '../api'
+import { Banner } from '../components/States'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [messageType, setMessageType] = useState('')
-  const [fieldErrors, setFieldErrors] = useState({})
   const [showForgot, setShowForgot] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
-  const [resetSent, setResetSent] = useState(false)
+  const [errors, setErrors] = useState({})
+  const [message, setMessage] = useState('')
+  const [messageKind, setMessageKind] = useState('info')
+  const [busy, setBusy] = useState(false)
+
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const validate = () => {
-    const errors = {}
-    if (!email) errors.email = 'Email is required'
-    if (!password) errors.password = 'Password is required'
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
+    const next = {}
+    if (!email.trim()) next.email = 'Enter your email'
+    if (!password) next.password = 'Enter your password'
+    setErrors(next)
+    return Object.keys(next).length === 0
   }
 
   const handleLogin = async (e) => {
     e.preventDefault()
+    setMessage('')
     if (!validate()) return
 
-    setLoading(true)
-    setMessage('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      setMessage(error.message)
-      setMessageType('error')
+    setBusy(true)
+    try {
+      await api.login(email.trim(), password)
+      // sendTo is where ProtectedRoute bounced them from, so a deep link
+      // survives a login.
+      navigate(location.state?.from || '/', { replace: true })
+    } catch (err) {
+      setMessage(err.message)
+      setMessageKind('error')
+    } finally {
+      setBusy(false)
     }
-    setLoading(false)
   }
 
+  // The old version swallowed the Supabase error entirely, so an invalid or
+  // rate-limited address produced no feedback at all.
   const handleForgotPassword = async (e) => {
     e.preventDefault()
-    if (!resetEmail) return
+    setMessage('')
+    if (!resetEmail.trim()) {
+      setMessage('Enter the email you signed up with')
+      setMessageKind('error')
+      return
+    }
 
-    setLoading(true)
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: window.location.origin
-    })
-    setLoading(false)
-    if (!error) setResetSent(true)
+    setBusy(true)
+    try {
+      await api.resendVerification(
+        resetEmail.trim(),
+        `${window.location.origin}/reset-password`
+      )
+      setMessage('If that address has an account, a reset link is on its way.')
+      setMessageKind('success')
+    } catch (err) {
+      setMessage(err.message)
+      setMessageKind('error')
+    } finally {
+      setBusy(false)
+    }
   }
 
   if (showForgot) {
     return (
-      <div className="login-container">
-        <h2 className="login-title">Ubuntu Store</h2>
-        <p className="login-subtitle">Reset your password</p>
-
-        {resetSent ? (
-          <div style={{ textAlign: 'center' }}>
-            <p className="login-success">Reset link sent! Check your email.</p>
-            <button
-              className="login-btn login-btn-secondary"
-              style={{ marginTop: '1rem' }}
-              onClick={() => { setShowForgot(false); setResetSent(false); setResetEmail('') }}
-            >
-              Back to Login
-            </button>
-          </div>
-        ) : (
-          <form className="login-form" onSubmit={handleForgotPassword}>
+      <div className="auth-page">
+        <form className="auth-card" onSubmit={handleForgotPassword}>
+          <h1>Reset your password</h1>
+          <p className="muted small">
+            We will email you a link to choose a new one.
+          </p>
+          <Banner kind={messageKind}>{message}</Banner>
+          <div className="field">
+            <label htmlFor="reset-email">Email</label>
             <input
-              className="login-input"
+              id="reset-email"
+              className="input"
               type="email"
-              placeholder="Enter your email"
+              autoComplete="email"
               value={resetEmail}
               onChange={(e) => setResetEmail(e.target.value)}
             />
-            <button type="submit" className="login-btn login-btn-primary" disabled={loading}>
-              {loading ? 'Sending...' : 'Send Reset Link'}
-            </button>
-            <button
-              type="button"
-              className="login-btn login-btn-secondary"
-              onClick={() => { setShowForgot(false); setResetEmail('') }}
-            >
-              Back to Login
-            </button>
-          </form>
-        )}
+          </div>
+          <button className="btn" type="submit" disabled={busy}>
+            {busy ? 'Sending...' : 'Send reset link'}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => { setShowForgot(false); setMessage('') }}
+          >
+            Back to login
+          </button>
+        </form>
       </div>
     )
   }
 
   return (
-    <div className="login-container">
-      <h2 className="login-title">Ubuntu Store</h2>
-      <p className="login-subtitle">Campus Marketplace</p>
+    <div className="auth-page">
+      <form className="auth-card" onSubmit={handleLogin} noValidate>
+        <h1>Ubuntu Store</h1>
+        <p className="muted">The campus marketplace.</p>
 
-      <form className="login-form" onSubmit={handleLogin}>
-        <div>
+        <Banner kind={messageKind}>{message}</Banner>
+
+        <div className="field">
+          <label htmlFor="email">Email</label>
           <input
-            className={`login-input ${fieldErrors.email ? 'has-error' : ''}`}
+            id="email"
+            className={`input ${errors.email ? 'has-error' : ''}`}
             type="email"
-            placeholder="Email address"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          {fieldErrors.email && <p className="login-error">{fieldErrors.email}</p>}
+          {errors.email && <p className="error-text">{errors.email}</p>}
         </div>
 
-        <div>
+        <div className="field">
+          <label htmlFor="password">Password</label>
           <input
-            className={`login-input ${fieldErrors.password ? 'has-error' : ''}`}
+            id="password"
+            className={`input ${errors.password ? 'has-error' : ''}`}
             type="password"
-            placeholder="Password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          {fieldErrors.password && <p className="login-error">{fieldErrors.password}</p>}
+          {errors.password && <p className="error-text">{errors.password}</p>}
         </div>
 
-        {message && <p className={messageType === 'error' ? 'login-error' : 'login-success'}>{message}</p>}
-
-        <button type="submit" className="login-btn login-btn-primary" disabled={loading}>
-          {loading ? 'Please wait...' : 'Log In'}
+        <button className="btn" type="submit" disabled={busy}>
+          {busy ? 'Signing in...' : 'Log In'}
         </button>
+
+        <div className="row-between auth-alt">
+          <Link to="/signup">Create an account</Link>
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => { setShowForgot(true); setMessage('') }}
+          >
+            Forgot password?
+          </button>
+        </div>
       </form>
-
-      <div className="login-divider" style={{ margin: '1rem 0' }}>
-        New here?
-      </div>
-
-      <Link to="/signup" style={{ textDecoration: 'none' }}>
-        <button className="login-btn login-btn-secondary">Create Account</button>
-      </Link>
-
-      <div className="login-forgot" style={{ marginTop: '1rem' }}>
-        <button onClick={() => setShowForgot(true)}>Forgot password?</button>
-      </div>
     </div>
   )
 }
