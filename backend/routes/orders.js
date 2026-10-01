@@ -31,7 +31,7 @@ router.get('/', auth, async (req, res) => {
 router.get('/incoming', auth, async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from('orders')
-    .select('*, items:order_items (${ITEM_FIELDS})')
+    .select(`*, items:order_items (${ITEM_FIELDS})`)
     .eq('seller_id', req.user.id)
     .order('created_at', { ascending: false })
 

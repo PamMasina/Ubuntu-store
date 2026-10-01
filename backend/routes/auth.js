@@ -12,7 +12,9 @@ router.post('/register', async (req, res) => {
   const password = requireString(req.body.password, 'Password', { max: 200 })
   const fullName = requireString(req.body.full_name, 'Full name', { min: 2, max: 120 })
   const role = requireString(req.body.role || 'student', 'Role')
-  const university = requireString(req.body.university, 'University', { max: 160 })
+  const university = role === 'student'
+    ? requireString(req.body.university, 'University', { max: 160 })
+    : (req.body.university || '')
 
   if (!ROLES.includes(role)) {
     throw badRequest(`Role must be one of: ${ROLES.join(', ')}`)

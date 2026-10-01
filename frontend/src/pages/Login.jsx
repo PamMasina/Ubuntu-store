@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { api } from '../api'
+import { supabase } from '../supabaseClient'
 import { Banner } from '../components/States'
 
 export default function Login() {
@@ -31,7 +32,10 @@ export default function Login() {
 
     setBusy(true)
     try {
-      await api.login(email.trim(), password)
+      const result = await api.login(email.trim(), password)
+      if (result.session) {
+        await supabase.auth.setSession(result.session)
+      }
       // sendTo is where ProtectedRoute bounced them from, so a deep link
       // survives a login.
       navigate(location.state?.from || '/', { replace: true })

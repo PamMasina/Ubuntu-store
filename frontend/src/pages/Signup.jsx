@@ -6,6 +6,7 @@ import { Banner } from '../components/States'
 const UNIVERSITY_DOMAINS = ['.ac.za', '.edu']
 
 const SOUTH_AFRICAN_UNIVERSITIES = [
+  // Traditional universities
   'University of Cape Town',
   'University of Cape Town (Graduate School of Business)',
   'University of Stellenbosch',
@@ -22,10 +23,36 @@ const SOUTH_AFRICAN_UNIVERSITIES = [
   'Walter Sisulu University',
   'Nelson Mandela University',
   'University of the Free State',
-  'University of KwaZulu-Natal (Howard College)',
+  'Rhodes University',
+  'University of Zululand',
+  // Universities of Technology
+  'Cape Peninsula University of Technology',
+  'Central University of Technology',
+  'Durban University of Technology',
+  'Tshwane University of Technology',
   'Vaal University of Technology',
-  'DUT - Durban University of Technology',
-  'Tshwane University of Technology'
+  'Mangosuthu University of Technology',
+  // Comprehensive universities
+  'University of South Africa (UNISA)',
+  'Walter Sisulu University',
+  // Private institutions
+  'AFDA',
+  'Varsity College',
+  'Stadio',
+  'Regenesys',
+  'Milpark Education',
+  'Boston City Campus',
+  'Pearson Institute of Higher Education',
+  'Independent Institute of Education (IIE)',
+  'Damelin',
+  'Inscape Design College',
+  'Vega School',
+  'The Design School Southern Africa (DSSA)',
+  'Cape Audio College',
+  'Red & Yellow Creative School of Business',
+  'Stellenbosch Academy of Design and Photography',
+  'University of the Western Cape (Institute for Post-School Studies)',
+  'Other'
 ]
 
 const isUniversityEmail = (value) =>
@@ -53,6 +80,11 @@ export default function Signup() {
   const [messageKind, setMessageKind] = useState('info')
   const [busy, setBusy] = useState(false)
   const [awaitingEmail, setAwaitingEmail] = useState(false)
+
+  // Real-time email validation for students
+  const emailError = role === 'student' && form.email && !isUniversityEmail(form.email)
+    ? 'Use your university email address (e.g. name@university.ac.za)'
+    : ''
 
   const navigate = useNavigate()
   const update = (field) => (e) => {
@@ -177,9 +209,11 @@ export default function Signup() {
             onChange={update('email')}
             autoComplete="email"
           />
-          {errors.email
-            ? <p className="error-text">{errors.email}</p>
-            : <p className="hint">Students: use your university address.</p>}
+          {emailError
+            ? <p className="error-text">{emailError}</p>
+            : errors.email
+              ? <p className="error-text">{errors.email}</p>
+              : <p className="hint">Students: use your university address.</p>}
         </div>
 
         {role === 'student' && (
@@ -190,6 +224,8 @@ export default function Signup() {
               className={`input ${errors.university ? 'has-error' : ''}`}
               value={form.university}
               onChange={update('university')}
+              size={1}
+              style={{ maxHeight: '200px', overflowY: 'auto' }}
             >
               <option value="">Select your university</option>
               {SOUTH_AFRICAN_UNIVERSITIES.map((name) => (

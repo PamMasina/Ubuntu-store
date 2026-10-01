@@ -22,17 +22,27 @@ export default function Header({ title = 'Ubuntu Store' }) {
       <Link to="/" className="app-brand">{title}</Link>
 
       <nav className="app-nav">
-        <NavLink to="/" end>Browse</NavLink>
-        <NavLink to="/orders">My Orders</NavLink>
-        <NavLink to="/board">Board</NavLink>
-        {isVendor && <NavLink to="/vendor">Dashboard</NavLink>}
+        {isVendor ? (
+          <>
+            <NavLink to="/vendor" end>Dashboard</NavLink>
+            <NavLink to="/board">Board</NavLink>
+          </>
+        ) : (
+          <>
+            <NavLink to="/" end>Browse</NavLink>
+            <NavLink to="/orders">My Orders</NavLink>
+            <NavLink to="/board">Board</NavLink>
+          </>
+        )}
       </nav>
 
       <div className="app-header-right">
-        <NavLink to="/cart" className="app-cart">
-          Cart
-          {count > 0 && <span className="app-cart-badge">{count}</span>}
-        </NavLink>
+        {!isVendor && (
+          <NavLink to="/cart" className="app-cart">
+            Cart
+            {count > 0 && <span className="app-cart-badge">{count}</span>}
+          </NavLink>
+        )}
         <NavLink to="/profile" className="app-email" title={user?.email}>
           {user?.email}
         </NavLink>

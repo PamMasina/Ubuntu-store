@@ -155,7 +155,12 @@ begin
   end if;
 
   if v_listing.stock < p_quantity then
-    raise exception 'Only ' || v_listing.stock || ' left in stock' using errcode = '22023';
+    declare
+      v_msg text;
+    begin
+      v_msg := 'Only ' || v_listing.stock || ' left in stock';
+      raise exception '%', v_msg using errcode = '22023';
+    end;
   end if;
 
   update public.listings
@@ -225,8 +230,12 @@ begin
    or (v_order.status = 'confirmed' and p_status in ('ready', 'cancelled'))
    or (v_order.status = 'ready'     and p_status = 'collected')
   ) then
-    raise exception 'Cannot change an order from ' || v_order.status
-                    || ' to ' || p_status using errcode = '22023';
+    declare
+      v_msg text;
+    begin
+      v_msg := 'Cannot change an order from ' || v_order.status || ' to ' || p_status;
+      raise exception '%', v_msg using errcode = '22023';
+    end;
   end if;
 
   -- The buyer can back out up until the meetup is under way.
