@@ -25,4 +25,22 @@ const supabaseAuth = createClient(supabaseUrl, anonKey || serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false }
 })
 
-module.exports = { supabaseAdmin, supabaseAuth }
+// A third client, bound to the caller's own JWT.
+//
+// The SECURITY DEFINER RPCs (place_order, update_order_status) read auth.uid()
+// to decide who is ordering and who is allowed to move an order along. Under
+// supabaseAdmin that resolves to NULL, because the request carries the
+// service_role JWT rather than a user one, and both functions then bail out with
+// "Not authenticated" no matter who is actually signed in. Forwarding the
+// caller's token makes auth.uid() resolve to them.
+//
+// anon key + user JWT is the right pairing: the functions are SECURITY DEFINER,
+// so they still run with the owner's privileges and bypass RLS.
+function supabaseAsUser(token) {
+  return createClient(supabaseUrl, anonKey || serviceKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  })
+}
+
+module.exports = { supabaseAdmin, supabaseAuth, supabaseAsUser }

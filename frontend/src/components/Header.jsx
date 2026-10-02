@@ -23,15 +23,11 @@ export default function Header({ title = 'Ubuntu Store' }) {
 
       <nav className="app-nav">
         {isVendor ? (
-          <>
-            <NavLink to="/vendor" end>Dashboard</NavLink>
-            <NavLink to="/board">Board</NavLink>
-          </>
+          <NavLink to="/vendor" end>Dashboard</NavLink>
         ) : (
           <>
             <NavLink to="/" end>Browse</NavLink>
             <NavLink to="/orders">My Orders</NavLink>
-            <NavLink to="/board">Board</NavLink>
           </>
         )}
       </nav>

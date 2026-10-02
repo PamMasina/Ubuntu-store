@@ -11,8 +11,10 @@ export class ApiError extends Error {
 }
 
 async function request(path, { method = 'GET', body, token, headers: extra } = {}) {
-  const headers = { ...extra }
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  const headers = { ...(extra || {}) }
+  if (body !== undefined && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json'
+  }
   if (token) headers['Authorization'] = `Bearer ${token}`
 
   let res
@@ -92,15 +94,14 @@ export const api = {
   createReview: (payload, token) => post('/reviews', payload, token),
   getPendingReviews: (token) => get('/reviews/pending/mine', token),
 
-  // Board
-  getBoardPosts: (params) => get(`/board${qs(params)}`),
-  createBoardPost: (payload, token) => post('/board', payload, token),
-  deleteBoardPost: (id, token) => del(`/board/${id}`, token),
-
   // Meta
   getMeta: () => get('/meta'),
 
   // Uploads
   uploadListingImage: (base64, contentType, token) =>
-    post('/uploads/listing-images', { file: base64 }, token, { 'Content-Type': contentType })
+    request('/uploads/listing-images', {
+      method: 'POST',
+      body: { file: base64, contentType },
+      token
+    })
 }

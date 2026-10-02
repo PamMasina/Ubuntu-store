@@ -34,10 +34,10 @@ export default function Cart() {
         </div>
 
         {isMixed && (
-          <div className="banner banner-info">
-            Your cart has items from more than one seller. Checkout takes one
-            seller at a time, so you will place a separate order for each.
-          </div>
+            <div className="banner banner-info">
+              Your cart has items from more than one seller. You'll place one
+              order per seller.
+            </div>
         )}
 
         <div className="card">
@@ -100,7 +100,7 @@ export default function Cart() {
               R{totalPrice.toFixed(2)}
             </span>
             <button className="btn" onClick={() => navigate('/checkout')}>
-              Checkout
+              Place order
             </button>
           </div>
         </div>

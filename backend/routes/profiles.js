@@ -14,7 +14,7 @@ const {
 router.get('/me/details', auth, async (req, res) => {
   const id = req.user.id
 
-  const [ordersBought, ordersSold, listings] = await Promise.all([
+  const [ordersBought, ordersSold, listings, reviewsWritten] = await Promise.all([
     supabaseAdmin
       .from('orders')
       .select('id, status', { count: 'exact', head: true })
@@ -26,7 +26,14 @@ router.get('/me/details', auth, async (req, res) => {
     supabaseAdmin
       .from('listings')
       .select('id, status, stock', { count: 'exact', head: true })
-      .eq('seller_id', id)
+      .eq('seller_id', id),
+    // Reviews this user has written. A student's rating is always zero because
+    // nobody reviews a buyer, so the count they authored is the number worth
+    // showing them instead.
+    supabaseAdmin
+      .from('reviews')
+      .select('id', { count: 'exact', head: true })
+      .eq('reviewer_id', id)
   ])
 
   const { data: rating } = await supabaseAdmin
@@ -41,7 +48,8 @@ router.get('/me/details', auth, async (req, res) => {
     stats: {
       purchases: ordersBought.count || 0,
       sales: ordersSold.count || 0,
-      listings: listings.count || 0
+      listings: listings.count || 0,
+      reviewsWritten: reviewsWritten.count || 0
     },
     averageRating: rating ? Number(rating.average_rating) : 0,
     reviewCount: rating ? Number(rating.review_count) : 0

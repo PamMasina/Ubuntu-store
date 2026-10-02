@@ -120,7 +120,6 @@ metadata.
 | GET | `/api/reviews/:sellerId` | Public |
 | POST | `/api/reviews` | Requires a collected order |
 | GET | `/api/reviews/pending/mine` | Collected orders awaiting a review |
-| GET/POST/DELETE | `/api/board` | Community board |
 
 ## How stock stays correct
 

@@ -65,11 +65,17 @@ const getPasswordChecks = (value) => [
   { label: 'One number', ok: /\d/.test(value) }
 ]
 
+// Kept in step with the server-side check in backend/routes/profiles.js so the
+// form does not accept something the API will reject.
+const isValidPhone = (value) => /^[+\d][\d\s-]{5,}$/.test(value.trim())
+
 export default function Signup() {
   const [role, setRole] = useState('student')
   const [form, setForm] = useState({
     full_name: '',
     email: '',
+    phone: '',
+    whatsapp: '',
     university: '',
     password: '',
     confirm: '',
@@ -105,6 +111,17 @@ export default function Signup() {
       next.email = 'Use your university email address'
     }
     if (role === 'student' && !form.university) next.university = 'Choose your university'
+    // A meetup marketplace is unusable without a way to reach the other side,
+    // so a phone number is required. WhatsApp is optional.
+    const phone = form.phone.trim()
+    if (!phone) {
+      next.phone = 'Enter a phone number so sellers can reach you at the meetup'
+    } else if (!isValidPhone(phone)) {
+      next.phone = 'Enter a valid phone number'
+    }
+    if (form.whatsapp.trim() && !isValidPhone(form.whatsapp)) {
+      next.whatsapp = 'Enter a valid WhatsApp number'
+    }
     if (!form.password) {
       next.password = 'Choose a password'
     } else {
@@ -130,6 +147,8 @@ export default function Signup() {
         password: form.password,
         full_name: form.full_name.trim(),
         role,
+        phone: form.phone.trim(),
+        whatsapp: form.whatsapp.trim() || null,
         university: form.university,
         emailRedirectTo: `${window.location.origin}/`
       })
@@ -216,6 +235,36 @@ export default function Signup() {
               : <p className="hint">Students: use your university address.</p>}
         </div>
 
+        <div className="field">
+          <label htmlFor="phone">Phone number</label>
+          <input
+            id="phone"
+            className={`input ${errors.phone ? 'has-error' : ''}`}
+            type="tel"
+            value={form.phone}
+            onChange={update('phone')}
+            autoComplete="tel"
+            placeholder="e.g. 082 123 4567"
+          />
+          {errors.phone
+            ? <p className="error-text">{errors.phone}</p>
+            : <p className="hint">Shared with a seller only once they accept your order.</p>}
+        </div>
+
+        <div className="field">
+          <label htmlFor="whatsapp">WhatsApp (optional)</label>
+          <input
+            id="whatsapp"
+            className={`input ${errors.whatsapp ? 'has-error' : ''}`}
+            type="tel"
+            value={form.whatsapp}
+            onChange={update('whatsapp')}
+            autoComplete="tel"
+            placeholder="Same number is fine"
+          />
+          {errors.whatsapp && <p className="error-text">{errors.whatsapp}</p>}
+        </div>
+
         {role === 'student' && (
           <div className="field">
             <label htmlFor="university">University</label>
@@ -280,8 +329,8 @@ export default function Signup() {
               onChange={update('terms')}
             />
             <span>
-              I agree to the <Link to="/board">community rules</Link>: no
-              counterfeit goods, and meet where it is safe.
+              I agree to the community rules: no counterfeit goods, and meet
+              where it is safe.
             </span>
           </label>
           {errors.terms && <p className="error-text">{errors.terms}</p>}

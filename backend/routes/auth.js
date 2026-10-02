@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { supabaseAuth } = require('../config/supabase')
 const { auth } = require('../middleware/auth')
-const { requireString, badRequest } = require('../utils/validate')
+const { requireString, optionalString, badRequest } = require('../utils/validate')
 const { ROLES } = require('../config/constants')
 
 // Runs on the anon-key client. Registering or logging in with the service key
@@ -23,13 +23,28 @@ router.post('/register', async (req, res) => {
     throw badRequest('Password must be at least 8 characters')
   }
 
+  // Both sides of a meetup need a way to reach each other, so this is required
+  // rather than optional. Same pattern as PUT /api/profiles/me.
+  const phone = optionalString(req.body.phone, 'Phone number', { max: 32 })
+  const whatsapp = optionalString(req.body.whatsapp, 'WhatsApp', { max: 32 })
+
+  if (!phone) {
+    throw badRequest('A phone number is required so the other party can reach you at the meetup')
+  }
+  if (!/^[+\d][\d\s-]{5,}$/.test(phone)) {
+    throw badRequest('Enter a valid phone number')
+  }
+  if (whatsapp && !/^[+\d][\d\s-]{5,}$/.test(whatsapp)) {
+    throw badRequest('Enter a valid WhatsApp number')
+  }
+
   // The profile row itself is created by the on_auth_user_created trigger, so
   // role and full_name travel as signup metadata and cannot be forged later.
   const { data, error } = await supabaseAuth.auth.signUp({
     email,
     password,
     options: {
-      data: { full_name: fullName, role, university },
+      data: { full_name: fullName, role, university, phone, whatsapp },
       emailRedirectTo: req.body.emailRedirectTo || undefined
     }
   })

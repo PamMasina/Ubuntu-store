@@ -6,10 +6,11 @@ const { requireString, badRequest } = require('../utils/validate')
 
 const BUCKET = process.env.LISTING_IMAGES_BUCKET || 'listing-images'
 const MAX_BYTES = 5 * 1024 * 1024
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const ALLOWED_TYPES = ['image/jpeg', 'image/pjpeg', 'image/png', 'image/webp', 'image/gif']
 
 const EXTENSION = {
   'image/jpeg': 'jpg',
+  'image/pjpeg': 'jpg',
   'image/png': 'png',
   'image/webp': 'webp',
   'image/gif': 'gif'
@@ -20,21 +21,16 @@ const EXTENSION = {
 // service_role key. It is intentionally minimal: one file, validated by MIME
 // type and size, stored under the vendor's own user id.
 router.post('/listing-images', auth, requireRole('vendor'), async (req, res) => {
-  const contentType = req.headers['content-type'] || ''
+  // base64 keeps this dependency-free. Real binary uploads should switch to
+  // multipart and Multer, or have the browser POST directly to Storage with a
+  // signed URL from this endpoint.
+  const { file, contentType: ct } = req.body
+  const contentType = typeof ct === 'string' && ct ? ct : ''
 
   if (!ALLOWED_TYPES.includes(contentType)) {
     throw badRequest('Upload a JPEG, PNG, WebP or GIF image')
   }
 
-  const declared = Number.parseInt(req.headers['content-length'], 10)
-  if (Number.isFinite(declared) && declared > MAX_BYTES) {
-    throw badRequest('Images must be under 5MB')
-  }
-
-  // base64 keeps this dependency-free. Real binary uploads should switch to
-  // multipart and Multer, or have the browser POST directly to Storage with a
-  // signed URL from this endpoint.
-  const { file } = req.body
   if (typeof file !== 'string' || !file) {
     throw badRequest('No file supplied. Send base64 in "file".')
   }

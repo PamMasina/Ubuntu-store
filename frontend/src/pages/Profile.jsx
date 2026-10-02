@@ -14,7 +14,7 @@ function Stars({ value }) {
 }
 
 export default function Profile() {
-  const { session } = useAuth()
+  const { session, isVendor } = useAuth()
   const [details, setDetails] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -104,18 +104,29 @@ export default function Profile() {
             <p className="stat-number">{details.stats.purchases}</p>
             <p className="stat-label">Purchases</p>
           </div>
-          <div className="card stat-card">
-            <p className="stat-number">{details.stats.sales}</p>
-            <p className="stat-label">Sales</p>
-          </div>
-          <div className="card stat-card">
-            <p className="stat-number">{details.stats.listings}</p>
-            <p className="stat-label">Listings</p>
-          </div>
-          <div className="card stat-card">
-            <p className="stat-number">{details.averageRating.toFixed(1)}</p>
-            <p className="stat-label">{details.reviewCount} reviews</p>
-          </div>
+          {/* Sales and listings only mean something for a vendor. A student is
+              a buyer, so showing them a permanent zero looks like a bug. */}
+          {isVendor ? (
+            <>
+              <div className="card stat-card">
+                <p className="stat-number">{details.stats.sales}</p>
+                <p className="stat-label">Sales</p>
+              </div>
+              <div className="card stat-card">
+                <p className="stat-number">{details.stats.listings}</p>
+                <p className="stat-label">Listings</p>
+              </div>
+              <div className="card stat-card">
+                <p className="stat-number">{details.averageRating.toFixed(1)}</p>
+                <p className="stat-label">{details.reviewCount} reviews</p>
+              </div>
+            </>
+          ) : (
+            <div className="card stat-card">
+              <p className="stat-number">{details.stats.reviewsWritten}</p>
+              <p className="stat-label">Reviews written</p>
+            </div>
+          )}
         </div>
 
         <div className="card" style={{ padding: '1.25rem' }}>
@@ -215,7 +226,7 @@ export default function Profile() {
                 <dt className="small muted">Role</dt>
                 <dd style={{ margin: 0, textTransform: 'capitalize' }}>{details.profile.role}</dd>
               </div>
-              {details.reviewCount > 0 && (
+              {isVendor && details.reviewCount > 0 && (
                 <div className="row">
                   <Stars value={details.averageRating} />
                   <span className="small muted">({details.reviewCount})</span>

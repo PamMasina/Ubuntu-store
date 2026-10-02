@@ -9,7 +9,7 @@ import { useCart } from '../context/CartContext'
 // Checkout is meetup-only. There is no address field, no courier, no delivery
 // fee: the student picks where and when on campus, and pays cash on handover.
 export default function Checkout() {
-  const { session } = useAuth()
+  const { session, loading: authLoading } = useAuth()
   const { items, clear, isMixed } = useCart()
 
   const [meta, setMeta] = useState({ meetupPoints: [], meetupSlots: [] })
@@ -79,7 +79,7 @@ export default function Checkout() {
       <>
         <Header />
         <main className="page page-narrow">
-          <h2>Checkout</h2>
+          <h2>Place order</h2>
           <EmptyState
             title="There is nothing to check out"
             action={<Link className="btn" to="/">Browse the marketplace</Link>}
@@ -93,7 +93,7 @@ export default function Checkout() {
   // order. A mixed cart is walked through seller by seller.
   const [firstSeller, ...rest] = items
   const sellerItems = items.filter((item) => item.sellerId === firstSeller.sellerId)
-  const sellerName = sellerItems[0].sellerName
+  const sellerName = sellerItems[0]?.sellerName || 'the seller'
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault()
@@ -101,6 +101,11 @@ export default function Checkout() {
 
     if (!meetupPoint || !meetupSlot) {
       setError('Choose a meetup point and a time slot.')
+      return
+    }
+
+    if (!session?.access_token) {
+      setError('You are not signed in. Please log in again.')
       return
     }
 
@@ -148,7 +153,7 @@ export default function Checkout() {
     }
   }
 
-  if (loadingMeta) {
+  if (loadingMeta || authLoading) {
     return (<><Header /><main className="page page-narrow"><Spinner /></main></>)
   }
 
@@ -161,7 +166,7 @@ export default function Checkout() {
     <>
       <Header />
       <main className="page page-medium">
-        <h2>Checkout</h2>
+        <h2>Place order</h2>
         <p className="muted small">
           Meetup only, pay in cash. Nothing is shipped and no card is charged.
         </p>
@@ -239,8 +244,8 @@ export default function Checkout() {
             </div>
             <p className="muted small">Payable in cash at the meetup.</p>
 
-            <button className="btn" type="submit" disabled={placing} style={{ width: '100%' }}>
-              {placing ? 'Placing order...' : 'Place order'}
+            <button className="btn" type="submit" disabled={placing || !session?.access_token} style={{ width: '100%' }}>
+              {placing ? 'Placing order...' : !session?.access_token ? 'Signing in...' : 'Place order'}
             </button>
 
             {isMixed && (

@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { supabaseAdmin } = require('../config/supabase')
+const { supabaseAdmin, supabaseAsUser } = require('../config/supabase')
 const { auth } = require('../middleware/auth')
 const {
   requireInt,
@@ -48,7 +48,7 @@ router.post('/', auth, async (req, res) => {
   const meetupSlot = requireOneOf(req.body.meetup_slot, 'Meetup slot', MEETUP_SLOTS)
   const note = optionalString(req.body.note, 'Note', { max: 500 })
 
-  const { data, error } = await supabaseAdmin.rpc('place_order', {
+  const { data, error } = await supabaseAsUser(req.token).rpc('place_order', {
     p_listing_id: listingId,
     p_quantity: quantity,
     p_meetup_point: meetupPoint,
@@ -97,7 +97,7 @@ router.patch('/:id/status', auth, async (req, res) => {
   const id = requireUuid(req.params.id, 'Order id')
   const status = requireOneOf(req.body.status, 'Status', ORDER_STATUSES)
 
-  const { data, error } = await supabaseAdmin.rpc('update_order_status', {
+  const { data, error } = await supabaseAsUser(req.token).rpc('update_order_status', {
     p_order_id: id,
     p_status: status
   })

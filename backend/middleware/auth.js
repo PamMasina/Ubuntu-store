@@ -36,6 +36,9 @@ async function auth(req, res, next) {
 
   req.user = data.user
   req.profile = profile
+  // Kept so routes that call SECURITY DEFINER RPCs can forward the real JWT and
+  // let auth.uid() resolve inside them.
+  req.token = token
   next()
 }
 

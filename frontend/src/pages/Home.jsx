@@ -113,9 +113,9 @@ export default function Home() {
         </div>
 
         <div className="chips">
-          {['All', ...meta.categories].map((item) => (
+          {['All', ...meta.categories].map((item, i) => (
             <button
-              key={item}
+              key={`${item}-${i}`}
               className={`chip ${category === item ? 'active' : ''}`}
               onClick={() => setCategory(item)}
             >

@@ -14,7 +14,6 @@ import Profile from './pages/Profile'
 import VendorDashboard from './pages/VendorDashboard'
 import VendorListingForm from './pages/VendorListingForm'
 import SellerProfile from './pages/SellerProfile'
-import Board from './pages/Board'
 import NotFound from './pages/NotFound'
 
 function FullPageLoader() {
@@ -129,14 +128,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SellerProfile />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/board"
-        element={
-          <ProtectedRoute>
-            <Board />
           </ProtectedRoute>
         }
       />

@@ -41,6 +41,12 @@ function errorHandler(err, req, res, _next) {
         return res.status(400).json({ error: 'That value is not allowed' })
       case '22P02':
         return res.status(400).json({ error: 'Malformed id' })
+      // invalid_parameter_value. This is what the plpgsql functions raise for
+      // every rejected action: out of stock, buying your own listing, quantity
+      // below one, an illegal status transition. Without this case they all
+      // surfaced as an opaque 500.
+      case '22023':
+        return res.status(400).json({ error: err.message })
       case '28000':
         return res.status(401).json({ error: 'Not authenticated' })
       case '42501':
